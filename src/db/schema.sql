@@ -25,7 +25,7 @@ CREATE TABLE dispositivo (
         REFERENCES setor (id_setor)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
-	
+
 );
 
 COMMENT ON TABLE dispositivo IS 'Tabela que armazena os dispositivos a partir de onde serão realizadas as avaliações';
@@ -39,7 +39,6 @@ CREATE TABLE pergunta (
     id_pergunta SERIAL PRIMARY KEY,         -- Identificador único (PK)
     texto TEXT NOT NULL,           -- Texto longo da pergunta
     ativo BOOLEAN NOT NULL DEFAULT TRUE,    -- Indica se a pergunta está ativa (TRUE/FALSE)
-    feedback_textual BOOLEAN NOT NULL DEFAULT FALSE,  -- Indica se há feedback textual (sim/não)
 	id_setor INT NULL,                      -- Setor opcional vinculado à pergunta
     CONSTRAINT fk_pergunta_setor
         FOREIGN KEY (id_setor)
@@ -53,8 +52,28 @@ COMMENT ON TABLE pergunta IS 'Tabela que armazena as perguntas do sistema.';
 COMMENT ON COLUMN pergunta.id_pergunta IS 'Identificador único da pergunta.';
 COMMENT ON COLUMN pergunta.texto IS 'Texto completo da pergunta.';
 COMMENT ON COLUMN pergunta.ativo IS 'Define se a pergunta está ativa (TRUE) ou inativa (FALSE).';
-COMMENT ON COLUMN pergunta.feedback_textual IS 'Indica se a pergunta possui feedback textual (TRUE = sim / FALSE = não).';
 COMMENT ON COLUMN pergunta.id_setor IS 'Identificador do setor vinculado à pergunta (opcional)';
+
+CREATE TABLE pergunta_setor (
+	id_pergunta INT NOT NULL,
+    id_setor INT NOT NULL,
+	CONSTRAINT pk_pergunta_setor PRIMARY KEY (id_pergunta, id_setor),
+    CONSTRAINT fk_pergunta_setor_pergunta
+        FOREIGN KEY (id_pergunta)
+        REFERENCES pergunta (id_pergunta)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_pergunta_setor_setor
+        FOREIGN KEY (id_setor)
+        REFERENCES setor (id_setor)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+)
+
+COMMENT ON TABLE pergunta_setor IS 'Tabela que armazena a relação entre pergunta e setor';
+COMMENT ON COLUMN pergunta_setor.id_pergunta IS 'Identificador da pergunta (FK).';
+COMMENT ON COLUMN pergunta_setor.id_setor IS 'Identificador do setor (FK).';
+
 
 CREATE TABLE avaliacao (
 	id_avaliacao SERIAL PRIMARY KEY,
