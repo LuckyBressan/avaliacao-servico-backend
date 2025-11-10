@@ -39,12 +39,6 @@ CREATE TABLE pergunta (
     id_pergunta SERIAL PRIMARY KEY,         -- Identificador único (PK)
     texto TEXT NOT NULL,           -- Texto longo da pergunta
     ativo BOOLEAN NOT NULL DEFAULT TRUE,    -- Indica se a pergunta está ativa (TRUE/FALSE)
-	id_setor INT NULL,                      -- Setor opcional vinculado à pergunta
-    CONSTRAINT fk_pergunta_setor
-        FOREIGN KEY (id_setor)
-        REFERENCES setor (id_setor)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
 );
 
 -- Comentários opcionais para documentação
@@ -52,7 +46,6 @@ COMMENT ON TABLE pergunta IS 'Tabela que armazena as perguntas do sistema.';
 COMMENT ON COLUMN pergunta.id_pergunta IS 'Identificador único da pergunta.';
 COMMENT ON COLUMN pergunta.texto IS 'Texto completo da pergunta.';
 COMMENT ON COLUMN pergunta.ativo IS 'Define se a pergunta está ativa (TRUE) ou inativa (FALSE).';
-COMMENT ON COLUMN pergunta.id_setor IS 'Identificador do setor vinculado à pergunta (opcional)';
 
 CREATE TABLE pergunta_setor (
 	id_pergunta INT NOT NULL,
