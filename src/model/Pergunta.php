@@ -1,13 +1,18 @@
 <?php
 
-require_once('utils/funcao.php');
-require_once('Database.php');
+namespace App\Model;
 
-class Pergunta extends Model {
+require_once(__DIR__ . '/../utils/funcao.php');
+
+use App\Database;
+
+class Pergunta extends Model
+{
 
     private ?int $id;
     private string $texto;
     private bool $ativo;
+    private array $setor;
 
     public function __construct(
         ?int $id = null,
@@ -17,6 +22,13 @@ class Pergunta extends Model {
         $this->id = $id;
         $this->texto = $texto;
         $this->ativo = $ativo;
+    }
+
+    public function adicionaSetor(?int $id = null, string $nome = '', bool $ativo = true): static
+    {
+        $setor = new Setor($id, $nome, $ativo);
+        $this->setor[] = $setor;
+        return $this;
     }
 
     // Getters
@@ -35,6 +47,11 @@ class Pergunta extends Model {
         return $this->ativo;
     }
 
+    public function getSetor(): array
+    {
+        return $this->setor;
+    }
+
     // Setters
     public function setTexto(string $texto): static
     {
@@ -48,10 +65,41 @@ class Pergunta extends Model {
         return $this;
     }
 
-    public function getDadosFormatadosBd(): array {
+    public function setSetor(array $setor = []): static
+    {
+        $this->setor = $setor;
+        return $this;
+    }
+
+    public function getDadosFormatadosBd(): array
+    {
+        return array_merge(
+            [
+                'texto' => $this->texto,
+                'ativo' => $this->ativo,
+            ],
+            isset($this->id) ? ['id_pergunta' => $this->id] : []
+        );
+    }
+
+    public function getDadosFormatadosJson(): array
+    {
+        $setoresJson = [];
+        if (isset($this->setor)) {
+            foreach ($this->setor as $s) {
+                if (is_object($s) && method_exists($s, 'getDadosFormatadosJson')) {
+                    $setoresJson[] = $s->getDadosFormatadosJson();
+                } else {
+                    $setoresJson[] = $s;
+                }
+            }
+        }
+
         return [
+            'id' => $this->id,
             'texto' => $this->texto,
             'ativo' => $this->ativo,
+            'setor' => $setoresJson
         ];
     }
 }

@@ -1,16 +1,18 @@
 <?php
 
+namespace App\Model;
+
 class Avaliacao
 {
-    private int $idAvaliacao;
+    private ?int $idAvaliacao;
     private int $idDispositivo;
     private string $dataHoraAvaliacao;
 
-    public function __construct(int $idAvaliacao = 0, int $idDispositivo = 0, string $dataHoraAvaliacao = '')
+    public function __construct(?int $idAvaliacao = null, int $idDispositivo = 0, string $dataHoraAvaliacao = '')
     {
         $this->idAvaliacao = $idAvaliacao;
         $this->idDispositivo = $idDispositivo;
-        $this->dataHoraAvaliacao = $dataHoraAvaliacao;
+        $this->dataHoraAvaliacao = $dataHoraAvaliacao ?: date('Y-m-d H:i:s');
     }
 
     public function getIdAvaliacao(): int
@@ -45,10 +47,25 @@ class Avaliacao
 
     public function getDadosFormatadosBd(): array
     {
-        return [
-            'id_avaliacao' => $this->idAvaliacao,
+        return array_merge(
+            [
             'id_dispositivo' => $this->idDispositivo,
             'data_hora_avaliacao' => $this->dataHoraAvaliacao
+            ],
+            isset($this->idAvaliacao)
+                ? [
+                    'id_avaliacao' => $this->idAvaliacao,
+                ]
+                : []
+        );
+    }
+
+    public function getDadosFormatadosJson(): array
+    {
+        return [
+            'idAvaliacao' => $this->idAvaliacao,
+            'idDispositivo' => $this->idDispositivo,
+            'dataHoraAvaliacao' => $this->dataHoraAvaliacao
         ];
     }
 }

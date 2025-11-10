@@ -1,12 +1,14 @@
 <?php
 
+namespace App\Model;
+
 class Setor
 {
-    private int $idSetor;
+    private ?int $idSetor;
     private string $nome;
     private bool $ativo;
 
-    public function __construct(int $idSetor = 0, string $nome = '', bool $ativo = true)
+    public function __construct(?int $idSetor = null, string $nome = '', bool $ativo = true)
     {
         $this->idSetor = $idSetor;
         $this->nome = $nome;
@@ -45,8 +47,19 @@ class Setor
 
     public function getDadosFormatadosBd(): array
     {
+        return array_merge(
+            [
+                'nome' => $this->nome,
+                'ativo' => $this->ativo
+            ],
+            isset($this->idSetor) ? ['id_setor' => $this->idSetor] : []
+        );
+    }
+
+    public function getDadosFormatadosJson(): array
+    {
         return [
-            'id_setor' => $this->idSetor,
+            'idSetor' => $this->idSetor,
             'nome' => $this->nome,
             'ativo' => $this->ativo
         ];

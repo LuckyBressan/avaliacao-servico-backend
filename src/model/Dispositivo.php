@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Model;
+
 class Dispositivo
 {
     private int $idDispositivo;
@@ -57,9 +59,21 @@ class Dispositivo
 
     public function getDadosFormatadosBd(): array
     {
+        return array_merge(
+            [
+                'id_setor' => $this->idSetor,
+                'nome' => $this->nome,
+                'ativo' => $this->ativo
+            ],
+            $this->idDispositivo > 0 ? ['id_dispositivo' => $this->idDispositivo] : []
+        );
+    }
+
+    public function getDadosFormatadosJson(): array
+    {
         return [
-            'id_dispositivo' => $this->idDispositivo,
-            'id_setor' => $this->idSetor,
+            'idDispositivo' => $this->idDispositivo,
+            'idSetor' => $this->idSetor,
             'nome' => $this->nome,
             'ativo' => $this->ativo
         ];

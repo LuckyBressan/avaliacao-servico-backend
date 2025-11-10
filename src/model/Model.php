@@ -1,8 +1,17 @@
 <?php
 
-abstract class Model {
+namespace App\Model;
 
-    public function getDadosFormatadosBd(): array {
+abstract class Model
+{
+
+    public function getDadosFormatadosBd(): array
+    {
+        return [];
+    }
+
+    public function getDadosFormatadosJson(): array
+    {
         return [];
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Model;
+
 class RespostaAvaliacao
 {
     private int $idAvaliacao;
@@ -43,7 +45,7 @@ class RespostaAvaliacao
     public function setResposta(int $resposta): void
     {
         if ($resposta < 1 || $resposta > 10) {
-            throw new InvalidArgumentException("A resposta deve estar entre 1 e 10.");
+            throw new \InvalidArgumentException("A resposta deve estar entre 1 e 10.");
         }
         $this->resposta = $resposta;
     }
@@ -65,6 +67,16 @@ class RespostaAvaliacao
             'id_pergunta' => $this->idPergunta,
             'resposta' => $this->resposta,
             'feedback_textual' => $this->feedbackTextual
+        ];
+    }
+
+    public function getDadosFormatadosJson(): array
+    {
+        return [
+            'idAvaliacao' => $this->idAvaliacao,
+            'idPergunta' => $this->idPergunta,
+            'resposta' => $this->resposta,
+            'feedbackTextual' => $this->feedbackTextual
         ];
     }
 }

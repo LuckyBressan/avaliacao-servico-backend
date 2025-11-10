@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Model;
+
 class PerguntaSetor extends Model
 {
     private int $idPergunta;
@@ -16,9 +18,10 @@ class PerguntaSetor extends Model
         return $this->idPergunta;
     }
 
-    public function setIdPergunta(int $idPergunta): void
+    public function setIdPergunta(int $idPergunta): static
     {
         $this->idPergunta = $idPergunta;
+        return $this;
     }
 
     public function getIdSetor(): int
@@ -26,9 +29,10 @@ class PerguntaSetor extends Model
         return $this->idSetor;
     }
 
-    public function setIdSetor(int $idSetor): void
+    public function setIdSetor(int $idSetor): static
     {
         $this->idSetor = $idSetor;
+        return $this;
     }
 
     public function getDadosFormatadosBd(): array
@@ -36,6 +40,14 @@ class PerguntaSetor extends Model
         return [
             'id_pergunta' => $this->idPergunta,
             'id_setor' => $this->idSetor
+        ];
+    }
+
+    public function getDadosFormatadosJson(): array
+    {
+        return [
+            'idPergunta' => $this->idPergunta,
+            'idSetor' => $this->idSetor
         ];
     }
 }
