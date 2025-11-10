@@ -1,6 +1,6 @@
 <?php
 
-require_once('utils/funcao.php');
+namespace App;
 
 class Database
 {
@@ -8,6 +8,7 @@ class Database
     public static function select(
         array $coluna = ['*'],
         string $tabela = '',
+        array $join = [],
         array $condicao = [],
         ?int $limit = null,
         array $order = []
@@ -25,6 +26,7 @@ class Database
               FROM ' . $tabela . '
         ';
 
+        $sql .= self::addJoin($join);
         $sql .= self::addCondition($condicao);
         $sql .= self::addOrder($order);
 
@@ -136,6 +138,34 @@ class Database
         return $result ? true : false;
     }
 
+    private static function addJoin(array $joins = []): string
+    {
+        $sql = '';
+        if (count($joins) > 0) {
+            foreach ($joins as $type => $join) {
+                if (
+                    !self::validate($type) &&
+                    !self::validate($join, false)
+                ) {
+                    continue;
+                }
+                $sql .= !is_string($type) || isEmpty($type) ? ' JOIN ' : $type . ' JOIN ';
+                foreach ($join as $operator => $condition) {
+                    if (
+                        !self::validate($operator) &&
+                        !self::validate($condition, false)
+                    ) {
+                        continue;
+                    }
+                    $operator = !is_string($operator) ? '' : $operator;
+                    $sql .= "{$operator} {$condition}";
+                }
+
+            }
+        }
+        return $sql;
+    }
+
     private static function addCondition(array $condicao = []): string
     {
         $sql = '';
@@ -155,7 +185,7 @@ class Database
                     $operator = trim($sql) == 'WHERE' ? '' : ' AND ';
                 }
 
-                $sql .= "{$operator} {$condition}";
+                $sql .= " {$operator} {$condition} ";
             }
         }
         return $sql;
@@ -223,21 +253,11 @@ class Database
     {
         global $connectDb;
         if (!$connectDb) {
-            //pegamos as informações database do env
-            $connectionParams = [
-                'host' => getenv('DATABASE_HOST'),
-                'port' => getenv('DATABASE_PORT'),
-                'dbname' => getenv('DATABASE_NAME'),
-                'user' => getenv('DATABASE_USER'),
-                'password' => getenv('DATABASE_PASSWORD')
-            ];
-            //montamos a string de conexão com o banco de dados
-            $connectionString = '';
-            foreach ($connectionParams as $key => $value) {
-                $connectionString .= " {$key}={$value} ";
-            }
+            //pegamos as informações database
+            $connect = new Connection();
+
             //iniciamos a conexão com o banco de dados
-            $connectDb = pg_connect($connectionString);
+            $connectDb = pg_connect($connect->getStringConnection());
         }
         return $connectDb;
     }
