@@ -1,28 +1,32 @@
 <?php
 
-require_once('Persistencia.php');
+namespace App\Persistencia;
+
+use App\Model\Dispositivo;
 
 class DispositivoPersistencia extends Persistencia
 {
 
     const TABELA = 'dispositivo';
 
-    public function __construct($model)
+    public function __construct($model = null)
     {
+        if ($model === null) $model = new Dispositivo();
         parent::__construct(self::TABELA, $model);
     }
 
-    public function delete($id): bool
+    public function delete(array $condicao = []): bool
     {
-        return parent::delete([
-            'id_dispositivo' => $id
-        ]);
+        $condicao = count($condicao) ? $condicao : [
+            'id_dispositivo' => $this->model->getIdDispositivo()
+        ];
+        return parent::delete($condicao);
     }
 
     public function findById($id): ?Dispositivo
     {
         $dispositivo = parent::findById([
-            'id_dispositivo' => $id
+            "id_dispositivo = $id"
         ]);
 
         if (!$dispositivo)
@@ -36,9 +40,9 @@ class DispositivoPersistencia extends Persistencia
         );
     }
 
-    public function findAll(array $condicao = [], ?int $limit = null, array $order = []): array
+    public function findAll(array $join = [], array $condicao = [], ?int $limit = null, array $order = []): array
     {
-        $result = parent::findAll($condicao, $limit, $order);
+        $result = parent::findAll($join, $condicao, $limit, $order);
 
         $itens = [];
         foreach ($result as $row) {

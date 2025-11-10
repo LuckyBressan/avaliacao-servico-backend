@@ -1,6 +1,8 @@
 <?php
 
-require_once('Persistencia.php');
+namespace App\Persistencia;
+
+use App\Model\Avaliacao;
 
 class AvaliacaoPersistencia extends Persistencia
 {
@@ -35,9 +37,9 @@ class AvaliacaoPersistencia extends Persistencia
         );
     }
 
-    public function findAll(array $condicao = [], ?int $limit = null, array $order = []): array
+    public function findAll(array $join = [], array $condicao = [], ?int $limit = null, array $order = []): array
     {
-        $result = parent::findAll($condicao, $limit, $order);
+        $result = parent::findAll($join, $condicao, $limit, $order);
 
         $itens = [];
         foreach ($result as $row) {

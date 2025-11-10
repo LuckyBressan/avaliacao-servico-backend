@@ -1,25 +1,32 @@
 <?php
 
-require_once('../Database.php');
+namespace App\Persistencia;
 
-abstract class Persistencia {
+use App\Database;
+use App\Model\Model;
 
-    private string $tabela;
-    private Model $model;
+abstract class Persistencia
+{
 
-    public function __construct(string $tabela, Model $model) {
+    protected string $tabela;
+    protected $model;
+
+    public function __construct(string $tabela, $model = null)
+    {
         $this->tabela = $tabela;
-        $this->model  = $model;
+        $this->model = $model;
     }
 
-    public function insert(): bool {
+    public function insert(): bool
+    {
         return Database::insert(
             $this->tabela,
             $this->model->getDadosFormatadosBd()
         );
     }
 
-    public function update(array $condicao): bool {
+    public function update(array $condicao): bool
+    {
         return Database::update(
             $this->tabela,
             $this->model->getDadosFormatadosBd(),
@@ -27,7 +34,8 @@ abstract class Persistencia {
         );
     }
 
-    public function delete(array $condicao): bool {
+    public function delete(array $condicao): bool
+    {
         return Database::delete(
             $this->tabela,
             $condicao
@@ -39,6 +47,7 @@ abstract class Persistencia {
         $result = Database::select(
             ['*'],
             $this->tabela,
+            [],
             $condicao,
             1
         );
@@ -50,10 +59,21 @@ abstract class Persistencia {
         return $result[0];
     }
 
-    public function findAll(array $condicao = [], ?int $limit = null, array $order = []): array
+    public function findAll(array $join = [], array $condicao = [], ?int $limit = null, array $order = []): array
     {
-        $result = Database::select(['*'], $this->tabela, $condicao, $limit, $order);
+        $result = Database::select(['*'], $this->tabela, $join, $condicao, $limit, $order);
         return $result;
+    }
+
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    public function setModel( $model): static
+    {
+        $this->model = $model;
+        return $this;
     }
 
 }

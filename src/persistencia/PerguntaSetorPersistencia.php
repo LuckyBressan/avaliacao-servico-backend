@@ -1,20 +1,24 @@
 <?php
 
-require_once('Persistencia.php');
+namespace App\Persistencia;
+
+use App\Model\PerguntaSetor;
+use App\Model\Pergunta;
 
 class PerguntaSetorPersistencia extends Persistencia
 {
 
     const TABELA = 'pergunta_setor';
 
-    public function __construct($model)
+    public function __construct($model = null)
     {
+        if ($model === null)
+            $model = new PerguntaSetor();
         parent::__construct(self::TABELA, $model);
     }
 
     public function delete($idPergunta, $idSetor = null): bool
     {
-        // if only idPergunta provided, delete by pergunta; if both provided, use both
         if ($idSetor === null) {
             return parent::delete([
                 'id_pergunta' => $idPergunta
@@ -27,9 +31,15 @@ class PerguntaSetorPersistencia extends Persistencia
         ]);
     }
 
-    public function findById($idPergunta, $idSetor = null)
+    public function findById($idPergunta = null, $idSetor = null)
     {
-        $cond = ['id_pergunta' => $idPergunta];
+        //Se ambos forem vazios, retorna nada
+        if (!$idPergunta && !$idSetor)
+            return null;
+
+        if ($idPergunta !== null) {
+            $cond = ['id_pergunta' => $idPergunta];
+        }
         if ($idSetor !== null)
             $cond['id_setor'] = $idSetor;
 
@@ -44,9 +54,9 @@ class PerguntaSetorPersistencia extends Persistencia
         );
     }
 
-    public function findAll(array $condicao = [], ?int $limit = null, array $order = []): array
+    public function findAll(array $join = [], array $condicao = [], ?int $limit = null, array $order = []): array
     {
-        $result = parent::findAll($condicao, $limit, $order);
+        $result = parent::findAll($join, $condicao, $limit, $order);
 
         $itens = [];
         foreach ($result as $row) {
@@ -57,5 +67,32 @@ class PerguntaSetorPersistencia extends Persistencia
         }
 
         return $itens;
+    }
+
+    public function findAllPerguntasToAvaliacao(int $idSetor)
+    {
+        $result = parent::findAll(
+            [
+                'RIGHT' => [
+                    PerguntaPersistencia::TABELA . ' p ',
+                    'USING' => '(id_pergunta)'
+                ]
+            ],
+            [
+                "pergunta_setor.id_setor = $idSetor",
+                'OR' => 'pergunta_setor.id_setor IS NULL'
+            ],
+            order: ['p.id_pergunta' => 'ASC']
+        );
+
+        $perguntas = [];
+        foreach ($result as $row) {
+            if ($row['ativo'] !== 't')
+                continue;
+            $pergunta = new Pergunta($row['id_pergunta'], $row['texto']);
+            $perguntas[] = $pergunta;
+        }
+
+        return $perguntas;
     }
 }

@@ -1,13 +1,38 @@
 <?php
 
-require_once('Persistencia.php');
+namespace App\Persistencia;
+
+use App\Model\Pergunta;
 
 class PerguntaPersistencia extends Persistencia {
 
     const TABELA = 'pergunta';
 
-    public function __construct(Pergunta $model) {
+    public function __construct($model = new Pergunta()) {
         parent::__construct(self::TABELA, $model);
+    }
+
+    public function insert(): bool
+    {
+        $return = parent::insert();
+        if( count($this->model->getSetor()) ) {
+            /**
+             * @var \App\Model\Setor[]
+             */
+            $setores = $this->model->getSetor();
+            $pergSetorPers = new PerguntaSetorPersistencia();
+            /**
+             * @var \App\Model\PerguntaSetor
+             */
+            $pergSetorModel = $pergSetorPers->getModel();
+            foreach ($setores as $setor) {
+                $pergSetorModel
+                    ->setIdPergunta($this->model->getId())
+                    ->setIdSetor($setor->getIdSetor());
+                $pergSetorPers->insert();
+            }
+        }
+        return $return;
     }
 
     public function delete($id): bool {
@@ -30,9 +55,9 @@ class PerguntaPersistencia extends Persistencia {
         );
     }
 
-    public function findAll(array $condicao = [], ?int $limit = null, array $order = []): array
+    public function findAll(array $join = [], array $condicao = [], ?int $limit = null, array $order = []): array
     {
-        $result = parent::findAll($condicao, $limit, $order);
+        $result = parent::findAll($join, $condicao, $limit, $order);
 
         $perguntas = [];
         foreach ($result as $pergunta) {
