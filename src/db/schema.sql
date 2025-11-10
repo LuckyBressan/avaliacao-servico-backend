@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS resposta_avaliacao;
+DROP TABLE IF EXISTS pergunta_setor;
 DROP TABLE IF EXISTS PERGUNTA;
 DROP TABLE IF EXISTS AVALIACAO;
 DROP TABLE IF EXISTS DISPOSITIVO;
@@ -34,14 +35,12 @@ COMMENT ON COLUMN dispositivo.nome IS 'Nome do dispositivo';
 COMMENT ON COLUMN dispositivo.ativo IS 'Define se o dispositivo está ativo (TRUE) ou inativo (FALSE)';
 COMMENT ON COLUMN dispositivo.id_setor IS 'Identificador do setor vinculado ao dispositivo';
 
--- Criação da tabela "pergunta"
 CREATE TABLE pergunta (
-    id_pergunta SERIAL PRIMARY KEY,         -- Identificador único (PK)
-    texto TEXT NOT NULL,           -- Texto longo da pergunta
-    ativo BOOLEAN NOT NULL DEFAULT TRUE,    -- Indica se a pergunta está ativa (TRUE/FALSE)
+    id_pergunta SERIAL PRIMARY KEY,
+    texto TEXT NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- Comentários opcionais para documentação
 COMMENT ON TABLE pergunta IS 'Tabela que armazena as perguntas do sistema.';
 COMMENT ON COLUMN pergunta.id_pergunta IS 'Identificador único da pergunta.';
 COMMENT ON COLUMN pergunta.texto IS 'Texto completo da pergunta.';
@@ -61,7 +60,7 @@ CREATE TABLE pergunta_setor (
         REFERENCES setor (id_setor)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
-)
+);
 
 COMMENT ON TABLE pergunta_setor IS 'Tabela que armazena a relação entre pergunta e setor';
 COMMENT ON COLUMN pergunta_setor.id_pergunta IS 'Identificador da pergunta (FK).';
@@ -109,3 +108,79 @@ COMMENT ON COLUMN resposta_avaliacao.resposta IS 'Nota atribuída à pergunta (1
 COMMENT ON COLUMN resposta_avaliacao.feedback_textual IS 'Comentário opcional do avaliador.';
 
 
+-- ===============================================
+-- 📋 POPULAÇÃO INICIAL DO BANCO DE DADOS
+-- Sistema de Avaliação de Estabelecimento
+-- ===============================================
+
+-- 🔹 SETORES
+INSERT INTO setor (nome, ativo) VALUES
+('Atendimento', TRUE),
+('Limpeza', TRUE),
+('Alimentação', TRUE),
+('Segurança', TRUE),
+('Administração', TRUE);
+
+-- 🔹 DISPOSITIVOS
+INSERT INTO dispositivo (nome, ativo, id_setor) VALUES
+('Totem - Entrada Principal', TRUE, 1),
+('Totem - Corredor Central', TRUE, 2),
+('Totem - Praça de Alimentação', TRUE, 3),
+('Totem - Saída', TRUE, 4);
+
+-- 🔹 PERGUNTAS
+INSERT INTO pergunta (texto, ativo) VALUES
+('Como você avalia a cordialidade e simpatia dos atendentes?', TRUE),
+('O tempo de espera para ser atendido foi adequado?', TRUE),
+('O ambiente estava limpo e organizado?', TRUE),
+('Os banheiros estavam limpos e equipados?', TRUE),
+('A qualidade e sabor da comida atenderam suas expectativas?', TRUE),
+('O tempo de preparo e entrega dos alimentos foi satisfatório?', TRUE),
+('Você se sentiu seguro durante sua permanência no local?', TRUE),
+('Os seguranças foram atenciosos e prestativos?', TRUE),
+('Você recomendaria este estabelecimento para outras pessoas?', TRUE);
+
+-- 🔹 RELAÇÃO PERGUNTA_SETOR
+-- (vincula perguntas aos setores correspondentes)
+INSERT INTO pergunta_setor (id_pergunta, id_setor) VALUES
+(1, 1),
+(2, 1),
+(3, 2),
+(4, 2),
+(5, 3),
+(6, 3),
+(7, 4),
+(8, 4);
+
+-- 🔹 AVALIAÇÕES
+-- simulando avaliações realizadas em diferentes dispositivos
+INSERT INTO avaliacao (id_dispositivo, data_hora_avaliacao) VALUES
+(1, NOW() - INTERVAL '3 days'),
+(3, NOW() - INTERVAL '2 days'),
+(2, NOW() - INTERVAL '1 day'),
+(4, NOW());
+
+-- 🔹 RESPOSTAS DAS AVALIAÇÕES
+-- Avaliação 1 (Atendimento)
+INSERT INTO resposta_avaliacao (id_avaliacao, id_pergunta, resposta, feedback_textual) VALUES
+(1, 1, 9, 'Funcionários muito educados e prestativos.'),
+(1, 2, 8, 'Um pouco de fila, mas rápido.'),
+(1, 9, 10, 'Excelente experiência!');
+
+-- Avaliação 2 (Alimentação)
+INSERT INTO resposta_avaliacao (id_avaliacao, id_pergunta, resposta, feedback_textual) VALUES
+(2, 5, 10, 'Comida deliciosa e quente.'),
+(2, 6, 7, 'Poderia ter sido servido um pouco mais rápido.'),
+(2, 9, 9, 'Voltaria com certeza.');
+
+-- Avaliação 3 (Limpeza)
+INSERT INTO resposta_avaliacao (id_avaliacao, id_pergunta, resposta, feedback_textual) VALUES
+(3, 3, 9, 'Ambiente bem limpo.'),
+(3, 4, 6, 'Banheiro estava sem papel.'),
+(3, 9, 8, 'De modo geral, tudo bom.');
+
+-- Avaliação 4 (Segurança)
+INSERT INTO resposta_avaliacao (id_avaliacao, id_pergunta, resposta, feedback_textual) VALUES
+(4, 7, 10, 'Me senti seguro o tempo todo.'),
+(4, 8, 9, 'Os seguranças foram gentis.'),
+(4, 9, 10, 'Ambiente muito agradável e confiável.');
