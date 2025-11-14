@@ -56,7 +56,7 @@ class Database
     ): bool {
         if (
             !self::validate($tabela, false) ||
-            !self::validate($dados, false)
+            !self::validate($dados, true)
         ) {
             return false;
         }
@@ -218,10 +218,96 @@ class Database
         return $value;
     }
 
+    /**
+     * Sanitiza strings básicas removendo caracteres de controle e normalizando espaços.
+     * Para arrays, aplica recursivamente.
+     */
+    private static function sanitize(mixed $info): mixed
+    {
+        if (is_array($info)) {
+            return array_map(fn($v) => self::sanitize($v), $info);
+        }
+
+        if (!is_string($info)) {
+            return $info;
+        }
+
+        // Remove caracteres de controle e normaliza espaços
+        $s = preg_replace('/[\x00-\x1F\x7F]/u', '', $info);
+        $s = preg_replace('/\s+/u', ' ', $s);
+        return trim($s);
+    }
+
+    /**
+     * Verifica se o token string parece um identificador SQL seguro (tabela/coluna/alias).
+     * Permite letras, números, underscore e ponto. Também permite alias com AS.
+     */
+    private static function isSafeIdentifier(string $s): bool
+    {
+        $s = trim($s);
+        // identificador simples ou com alias: name OR schema.name OR name AS alias
+        // permite também '*' isolado ou 'schema.*' / 'table.*'
+        return (bool) preg_match('/^(?:\*|[A-Za-z0-9_]+(?:\.(?:\*|[A-Za-z0-9_]+))?(?:\s+AS\s+[A-Za-z0-9_]+)?)$/i', $s);
+    }
+
+    /**
+     * Detecta padrões perigosos frequentemente utilizados em SQL injection.
+     */
+    private static function containsDangerousPatterns(string $s): bool
+    {
+        // comentários, ponto e vírgula, aspas, barras, padrões de palavras-chave perigosas
+        // busca comentários, ponto-e-vírgula, aspas simples/duplas e barra invertida
+        if (preg_match("/(--|\/\\*|\\*\/|;|'|\"|\\\\)/i", $s)) {
+            return true;
+        }
+
+        if (preg_match('/\b(union|select|insert|update|delete|drop|alter|truncate|exec|execute|declare|xp_)\b/i', $s)) {
+            return true;
+        }
+
+        return false;
+    }
+
     private static function validate(mixed $info, bool $bAllowEmpty = true): bool
     {
-        if (isEmpty($info))
+        if (isEmpty($info)) {
             return $bAllowEmpty;
+        }
+
+        // considerar arrays: validar todos os elementos
+        if (is_array($info)) {
+            foreach ($info as $v) {
+                if (!self::validate($v, $bAllowEmpty)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // sanitize básico
+        if (is_string($info)) {
+            $s = self::sanitize($info);
+
+            if ($s === '' || isEmpty($s)) {
+                return $bAllowEmpty;
+            }
+
+            // rejeita padrões óbvios de injeção
+            if (self::containsDangerousPatterns($s)) {
+                return false;
+            }
+
+            // se for um identificador simples (tabela/coluna), exige formato seguro
+            // Caso contrário (expressão com operadores), permitimos desde que sem padrões perigosos
+            // Detecta se aparenta ser um identificador (sem espaços e sem operadores comuns)
+            if (!preg_match('/[\s=<>\(\)\,]/', $s)) {
+                return self::isSafeIdentifier($s);
+            }
+
+            // para condições/expressões mais complexas: já removemos padrões perigosos,
+            // então aceitamos (mas recomenda-se sempre usar parâmetros em valores)
+            return true;
+        }
 
         return true;
     }
