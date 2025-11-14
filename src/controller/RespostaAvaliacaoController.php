@@ -24,7 +24,7 @@ class RespostaAvaliacaoController
                 );
                 $persistencia->setModel($resposta);
                 if( !$persistencia->insert() ) {
-                    return false;
+                    throw new \Exception('Erro ao salvar resposta da avaliação', 500);
                 }
             }
             return true;
